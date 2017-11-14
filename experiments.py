@@ -77,11 +77,11 @@ slide_window_config = [
 ]
 
 # saved model
-linear_svc_path = os.path.join("work", "linear_svc.pkl")
-standard_scaler_path = os.path.join("work", "standard_scaler.pkl")
+linear_svc_path = "output_images/linear_svc.pkl"
+standard_scaler_path = "output_images/standard_scaler.pkl"
 
-cars_path = os.path.join("work", "cars.pkl")
-notcars_path = os.path.join("work", "notcars.pkl")
+cars_path = "work/cars.pkl"
+notcars_path = "work/notcars.pkl"
 
 
 def cars_notcars_available(cars_path=cars_path, notcars_path=notcars_path):
@@ -447,7 +447,8 @@ def convert_hog(image, block_norm=block_norm, cell_per_block=cell_per_block, hog
 
 class LaneProcessor:
     def __init__(self, sample_height, sample_width, svc, X_scaler,
-                 window_size_threshold, output_dir):
+                 window_size_threshold, output_dir, debug):
+        self.debug = debug
         self.sample_height = sample_height
         self.sample_width = sample_width
 
@@ -521,8 +522,9 @@ class LaneProcessor:
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), lineType=cv2.LINE_AA, thickness=2)
 
         # for debugging
-        scipy.misc.toimage(image).save(os.path.join(self.output_dir, "%s_orig.png" % self.count))
-        scipy.misc.toimage(result_image).save(os.path.join(self.output_dir, "%s_res.png" % self.count))
+        if self.debug:
+            scipy.misc.toimage(image).save(os.path.join(self.output_dir, "%s_orig.png" % self.count))
+            scipy.misc.toimage(result_image).save(os.path.join(self.output_dir, "%s_res.png" % self.count))
 
         self.count += 1
 
@@ -535,7 +537,7 @@ def tag_video(finput, foutput, sample_height, sample_width,
               subclip_secs=None, output_dir="./work/debug_video"):
     detector = LaneProcessor(sample_height, sample_width,
                              linear_svc_path, standard_scaler_path,
-                             window_size_threshold, output_dir)
+                             window_size_threshold, output_dir, debug=False)
 
     video_clip = VideoFileClip(finput)
     if subclip_secs is not None:
@@ -640,33 +642,28 @@ if __name__ == "__main__":
     #
     # svc, X_scaler = load_trained_model(linear_svc_path, standard_scaler_path)
 
-    linear_svc_path = "output_images/linear_svc.pkl"
-    standard_scaler_path = "output_images/standard_scaler.pkl"
+    svc, X_scaler, _, _ = train_classifier(rescale_to_0_1(cars),
+                                           rescale_to_0_1(notcars),
+                                           color_space=color_space,
+                                           spatial_size=spatial_size,
+                                           hist_bins=hist_bins,
+                                           hist_range=hist_range,
+                                           orient=orient,
+                                           pix_per_cell=pix_per_cell,
+                                           cell_per_block=cell_per_block,
+                                           hog_channel=hog_channel,
+                                           block_norm=block_norm,
+                                           transform_sqrt=transform_sqrt,
+                                           vis=vis,
+                                           feature_vec=feature_vec,
+                                           spatial_feat=spatial_feat,
+                                           hist_feat=hist_feat,
+                                           hog_feat=hog_feat,
+                                           retrain=retrain,
+                                           linear_svc_path=linear_svc_path,
+                                           standard_scaler_path=standard_scaler_path)
 
-    svc, X_scaler, score, feature_vector_length = train_classifier(rescale_to_0_1(cars),
-                                                                   rescale_to_0_1(notcars),
-                                                                   color_space=color_space,
-                                                                   spatial_size=spatial_size,
-                                                                   hist_bins=hist_bins,
-                                                                   hist_range=hist_range,
-                                                                   orient=orient,
-                                                                   pix_per_cell=pix_per_cell,
-                                                                   cell_per_block=cell_per_block,
-                                                                   hog_channel=hog_channel,
-                                                                   block_norm=block_norm,
-                                                                   transform_sqrt=transform_sqrt,
-                                                                   vis=vis,
-                                                                   feature_vec=feature_vec,
-                                                                   spatial_feat=spatial_feat,
-                                                                   hist_feat=hist_feat,
-                                                                   hog_feat=hog_feat,
-                                                                   retrain=retrain,
-                                                                   linear_svc_path=linear_svc_path,
-                                                                   standard_scaler_path=standard_scaler_path)
-
-    output_file = "out_project_video_tmp.mp4"
-
-    tag_video("project_video.mp4", os.path.join(output_path, output_file), sample_height, sample_width,
+    tag_video("project_video.mp4", os.path.join(output_path, "out_project_video_tmp.mp4"), sample_height, sample_width,
               svc, X_scaler, window_size_threshold, output_dir="./output_images")
 
     # tag_video("project_video.mp4", os.path.join(output_path, output_file), sample_height, sample_width,
