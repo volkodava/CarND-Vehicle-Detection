@@ -28,7 +28,7 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the 4 - 7 code cells of the IPython notebook `solution.ipynb`.
+The code for this step is contained in the `4` - `7` code cells of the IPython notebook [solution.ipynb](solution.ipynb).
 
 I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
